@@ -1,8 +1,8 @@
-# EPAgent Plugins for Solaris (1.0)
+# EPAgent Plugins for Solaris (1.1)
 
 This is a series of plugins for monitoring the OS.
 
-sunDiskStats.pl - gathers I/O statistics for mount points. 
+sunDiskStats.pl - gathers I/O statistics for mount points.  
 mpstat.pl - gathers per processor statistics.  
 
 Tested with CA APM 9.7.1 EM, EPAgent 9.7.1, and Perl 5.22.
