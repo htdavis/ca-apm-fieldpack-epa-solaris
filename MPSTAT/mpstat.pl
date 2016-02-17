@@ -1,15 +1,16 @@
 #!/bin/perl
 #############################################################
-# Solaris Disk Stats
+# Solaris Multi-Processor Stats
 # =========================
-# Copyright (C) 2011
+# Copyright (C) 2015
 # =========================
 # Description: 
-# This perl program emulates the functionality seen in
-# aixDiskStats.pl. The program will create two nodes: Device, which
-# provides metrics by device name; Disk, which provides metrics by mount point.
-# N.B.: Inode metrics are currently unavailable for the version of DF
-# used in Solaris.
+# This perl program uses statistics from the 'mpstat' command.
+# 
+# "mpstat reports per-processor statistics in tabular form.
+#  Each row of the table represents the activity of one proces-
+#  sor."
+# "All values are rates (events per second) unless otherwise noted."
 # =========================
 # Usage: perl mpstat.pl
 #
@@ -20,96 +21,122 @@ use Wily::PrintMetric;
 
 use strict;
 
-# get the mounted disks specified on the command line
-my $mountedDisksRegEx = '.'; # default is match all
-if (scalar(@ARGV) > 0) {
-	$mountedDisksRegEx = join('|', @ARGV);
-}
 
-# iostat command for Solaris
-my $iostatCommand = 'iostat -rx';
-# Get the device stats
-my @iostatResults = `$iostatCommand`;
-# Get rid of the header lines for each command
-@iostatResults = @iostatResults[2..$#iostatResults];
-# The -r option for iostat prints out the stats separated by
-# commas, so grab all of them
+# mpstat command for Solaris
+my $mpstatCommand = 'mpstat';
+# Get the cpu stats
+my @mpstatResults = `$mpstatCommand`;
 # Output on Solaris:
-#extended device statistics
-#device,r/s,w/s,kr/s,kw/s,wait,actv,svc_t,%w,%b,
-#cmdk0,0.1,0.2,5.5,1.2,0.0,0.0,12.3,0,0
-#sd0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+#CPU minf mjf xcal  intr ithr  csw icsw migr smtx  srw syscl  usr sys  wt idl
+#  0    0   0   14   428  140 1476   39  101   67    1  5438    5   8   0  87
+#  1    0   0   19   202   18 2011   48  104   66    1  6403    6   5   0  89
 
-# parse the iostat results and report the
+# Get rid of the header lines for each command
+@mpstatResults = @mpstatResults[1..$#mpstatResults];
+
+
+# parse the mpstat results and report the
 # relevant data using metrics
-foreach my $isline (@iostatResults) {
+foreach my $isline (@mpstatResults) {
 	chomp $isline; # remove trailing new line
-	my @deviceStats = split ',', $isline;
-	my $device = $deviceStats[0];
-
-	# now, check to see if the user specified this device on the command
-	# line.
-	next if $device !~ /$mountedDisksRegEx/i;
+	# remove leading spaces
+    $isline =~ s/^\s+//;
+	my @cpuStats = split(/\s+/, $isline);
+	my $cpu = $cpuStats[0];
+	# prepend a zero to CPUs 1-9
+	if ( int($cpu) >= 1 && int($cpu) <= 9 ) {
+	    $cpu = "0". $cpu;
+	}
 	
-	# report iostats
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'Reads/sec',
-                                  value       => int ($deviceStats[1]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'Writes/sec',
-                                  value       => int ($deviceStats[2]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'KB Read/sec',
-                                  value       => int ($deviceStats[3]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'KB Written/sec',
-                                  value       => int ($deviceStats[4]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'Avg. Transactions Waiting',
-                                  value       => int ($deviceStats[5]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'Avg. Transactions Active',
-                                  value       => int ($deviceStats[6]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'Avg. Service Time in Wait Queue (ms)',
-                                  value       => int ($deviceStats[7]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => 'Avg. Service Time Active transactions (ms)',
-                                  value       => int ($deviceStats[8]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => '% Time Transactions Waiting',
-                                  value       => int ($deviceStats[9]),
-                                );
-  Wily::PrintMetric::printMetric( type        => 'IntCounter',
-                                  resource    => 'Device',
-                                  subresource => $device,
-                                  name        => '% Time Disk Is Busy',
-                                  value       => int ($deviceStats[10]),
-                                );
+	# report mpstats
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'minor faults',
+                                    value       => int ($cpuStats[1]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'major faults',
+                                    value       => int ($cpuStats[2]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'inter-proc x-calls',
+                                    value       => int ($cpuStats[3]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'interrupts',
+                                    value       => int ($cpuStats[4]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'interrupts as threads',
+                                    value       => int ($cpuStats[5]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'context switches',
+                                    value       => int ($cpuStats[6]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'inv context switches',
+                                    value       => int ($cpuStats[7]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'thread migrations',
+                                    value       => int ($cpuStats[8]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'spins on mutexes',
+                                    value       => int ($cpuStats[9]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'spins on readers',
+                                    value       => int ($cpuStats[10]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'system calls',
+                                    value       => int ($cpuStats[11]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'minor faults',
+                                    value       => int ($cpuStats[12]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'user time (%)',
+                                    value       => int ($cpuStats[13]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'system time (%)',
+                                    value       => int ($cpuStats[14]),
+                                  );
+	Wily::PrintMetric::printMetric( type        => 'IntCounter',
+                                    resource    => 'MPSTAT',
+                                    subresource => "cpu" . $cpu,
+                                    name        => 'wait time (%)',
+                                    value       => int ($cpuStats[15]),
+                                  );
 }
