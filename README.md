@@ -51,3 +51,12 @@ Version | Author | Comment
 1.0 | Hiko Davis | First bundled version of the field packs.
 1.1 | Hiko Davis | Updated README and added mpstat monitoring.
 1.2 | Hiko Davis | Fixed mpstat.pl.
+
+## Support URL
+https://github.com/htdavis/ca-apm-fieldpack-epa-solaris
+
+## Short Description
+Monitor Solaris OS
+
+## Categories
+Server Monitoring
