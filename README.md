@@ -8,9 +8,9 @@ mpstat.pl - gathers per-processor statistics
 Tested with CA APM 9.7.1 EM, EPAgent 9.7.1, and Perl 5.22.
 
 ## Known Issues
--None
+None
 
-#Licensing
+# Licensing
 FieldPacks are provided under the Apache License, version 2.0. See [Licensing](https://www.apache.org/licenses/LICENSE-2.0).
 
 
