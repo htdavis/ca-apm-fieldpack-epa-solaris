@@ -1,0 +1,1 @@
+Solaris OS Monitor plugin bundle for CA APM Infrastructure Agent
