@@ -1,4 +1,4 @@
-# EPAgent/APMIA Plugins for Solaris (1.3)
+# EPAgent/APMIA Plugins for Solaris (1.4)
 
 This is a series of plugins for monitoring the OS.
 
@@ -89,6 +89,7 @@ Version | Author | Comment
 1.1 | Hiko Davis | Updated README and added mpstat monitoring.
 1.2 | Hiko Davis | Fixed mpstat.pl.
 1.3 | Hiko Davis | Added vmstat and reorganized for ACC/APMIA.
+1.4 | Hiko Davis | Updated iostat logic in sunDiskStats.pl.
 
 ## Short Description
 Monitor Solaris OS
