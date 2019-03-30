@@ -1,12 +1,16 @@
 # EPAgent/APMIA Plugins for Solaris (1.5)
 
+# Description
 This is a series of plugins for monitoring the OS.
 
 sunDiskStats.pl - gathers I/O statistics for mount points.  
 sunMpStats.pl - gathers per-processor statistics  
 sunVmStats.pl - gathers memory statistics
 
+
+# Dependencies
 Tested with CA APM 9.7.1 EM+, EPAgent 9.7.1+, Infrastructure Agent 10.7, and Perl 5.22+.
+
 
 ## Known Issues
 None
@@ -91,6 +95,9 @@ Version | Author | Comment
 1.3 | Hiko Davis | Added vmstat and reorganized for ACC/APMIA.
 1.4 | Hiko Davis | Updated iostat logic in sunDiskStats.pl.
 1.5 | Hiko Davis | Updated iostat interval and relabeled metric names.
+
+## Support URL
+https://github.com/htdavis/ca-apm-fieldpack-epa-solaris
 
 ## Short Description
 Monitor Solaris OS
