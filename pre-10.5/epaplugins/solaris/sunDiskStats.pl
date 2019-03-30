@@ -19,7 +19,10 @@ use strict;
 use warnings;
 
 use FindBin;
-use lib ("$FindBin::Bin", "$FindBin::Bin/lib/perl", "$FindBin::Bin/../lib/perl");
+use lib ("$FindBin::Bin",
+         "$FindBin::Bin/lib/perl",
+         "$FindBin::Bin/../lib/perl",
+         "$FindBin::Bin/../../lib/perl");
 use Wily::PrintMetric;
 
 use Getopt::Long;
@@ -52,12 +55,24 @@ if ( $debug ) {
     @iostatResults = <<"EOF" =~ m/(^.*\n)/mg;
 extended device statistics
 device,r/s,w/s,kr/s,kw/s,wait,actv,svc_t,%w,%b,
-cmdk0,0.1,0.2,5.5,1.2,0.0,0.0,12.3,0,0
-sd0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+sd4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+sd5,0.0,151.1,0.0,1713.5,0.0,3.9,25.8,0,66
+sd6,0.0,152.1,0.0,1713.5,0.0,3.8,25.0,0,64
+sd7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+sd8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+ssd50,320.7,285.2,13644.8,13136.5,0.2,0.6,1.3,1,12
+nfs1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+nfs2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
 extended device statistics
 device,r/s,w/s,kr/s,kw/s,wait,actv,svc_t,%w,%b,
-cmdk0,0.1,0.2,5.5,1.2,0.0,0.0,12.3,0,0
-sd0,0.9,0.9,4.0,5.6,6.7,8.9,10.11,12,13
+sd4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+sd5,0.0,138.9,0.0,1617.7,0.0,3.6,25.8,0,60
+sd6,0.0,139.4,0.0,1617.7,0.0,3.6,25.7,0,60
+sd7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+sd8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+ssd50,399.1,328.5,19144.5,17533.4,0.2,0.6,1.0,1,21
+nfs1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
+nfs2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0
 EOF
 
     @dfResults = <<"EOF" =~ m/(^.*\n)/mg;
@@ -78,7 +93,7 @@ scripts               20572080  16322748   4249332  80% /export/home/hikod/scrip
 EOF
 } else {
     # iostat command for Solaris
-    $iostatCommand = 'iostat -rx 30 2';
+    $iostatCommand = 'iostat -rx 14 2';
     # get device stats
     @iostatResults = `$iostatCommand`;
     # df command for Solaris
@@ -92,7 +107,7 @@ my $r = 0;
 # find the start of the next set of results
 # parse the iostat results and report the
 # relevant data using metrics
-for my $l (2..$#iostatResults) {
+for my $l ( 2..$#iostatResults ) {
     chomp $iostatResults[$l]; # remove trailing new line
     #print "$iostatResults[$l]\n" if $debug;
     next if (index($iostatResults[$l], "extended") == -1) && ($r == 0);
@@ -123,49 +138,49 @@ for my $l (2..$#iostatResults) {
                                     name        => 'Writes/sec',
                                     value       => sprintf("%.0f", $deviceStats[2]),
                                   );
-    Wily::PrintMetric::printMetric( type        => 'IntCounter',
+    Wily::PrintMetric::printMetric( type        => 'LongCounter',
                                     resource    => 'Device',
                                     subresource => $device,
                                     name        => 'KB Read/sec',
                                     value       => sprintf("%.0f", $deviceStats[3]),
                                   );
-    Wily::PrintMetric::printMetric( type        => 'IntCounter',
+    Wily::PrintMetric::printMetric( type        => 'LongCounter',
                                     resource    => 'Device',
                                     subresource => $device,
                                     name        => 'KB Written/sec',
                                     value       => sprintf("%.0f", $deviceStats[4]),
                                   );
-    Wily::PrintMetric::printMetric( type        => 'IntCounter',
+    Wily::PrintMetric::printMetric( type        => 'LongCounter',
                                     resource    => 'Device',
                                     subresource => $device,
                                     name        => 'Avg. Transactions Waiting',
                                     value       => sprintf("%.0f", $deviceStats[5]),
                                   );
-    Wily::PrintMetric::printMetric( type        => 'IntCounter',
+    Wily::PrintMetric::printMetric( type        => 'LongCounter',
                                     resource    => 'Device',
                                     subresource => $device,
-                                    name        => 'Avg. Transactions Active',
+                                    name        => 'Avg. Transactions Actively Serviced',
                                     value       => sprintf("%.0f", $deviceStats[6]),
                                   );
-    Wily::PrintMetric::printMetric( type        => 'IntCounter',
+    Wily::PrintMetric::printMetric( type        => 'LongCounter',
                                     resource    => 'Device',
                                     subresource => $device,
-                                    name        => 'Avg. Service Time in Wait Queue (ms)',
+                                    name        => 'Avg. Response Time Of Transactions (ms)',
                                     value       => sprintf("%.0f", $deviceStats[7]),
                                   );
     Wily::PrintMetric::printMetric( type        => 'IntCounter',
                                     resource    => 'Device',
                                     subresource => $device,
-                                    name        => 'Avg. Service Time Active Transactions (ms)',
+                                    name        => '% Time Transactions Waiting',
                                     value       => sprintf("%.0f", $deviceStats[8]),
                                   );
     Wily::PrintMetric::printMetric( type        => 'IntCounter',
                                     resource    => 'Device',
                                     subresource => $device,
-                                    name        => '% Time Transactions Waiting',
+                                    name        => '% Time Disk Is Busy',
                                     value       => sprintf("%.0f", $deviceStats[9]),
                                   );
-    Wily::PrintMetric::printMetric( type        => 'IntCounter',
+    Wily::PrintMetric::printMetric( type        => 'LongCounter',
                                     resource    => 'Device',
                                     subresource => $device,
                                     name        => 'Transactions/sec',
