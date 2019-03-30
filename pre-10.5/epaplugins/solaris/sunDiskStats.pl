@@ -110,8 +110,10 @@ my $r = 0;
 for my $l ( 2..$#iostatResults ) {
     chomp $iostatResults[$l]; # remove trailing new line
     #print "$iostatResults[$l]\n" if $debug;
+    # check line doesn't have the word 'extended' and the counter 'r' equal 0
     next if (index($iostatResults[$l], "extended") == -1) && ($r == 0);
     #print "checking full string\n";
+    # check for a string match
     if ( $iostatResults[$l] =~ m/^extended\sdevice\sstatistics$/i && $r == 0) {
         #print "found matching.\n" if $debug;
         $r = 1;

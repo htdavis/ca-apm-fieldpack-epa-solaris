@@ -94,7 +94,7 @@ Version | Author | Comment
 1.2 | Hiko Davis | Fixed mpstat.pl.
 1.3 | Hiko Davis | Added vmstat and reorganized for ACC/APMIA.
 1.4 | Hiko Davis | Updated iostat logic in sunDiskStats.pl.
-1.5 | Hiko Davis | Updated iostat interval and relabeled metric names.
+1.5 | Hiko Davis | Updated iostat interval, relabeled metric names, developer details.
 
 ## Support URL
 https://github.com/htdavis/ca-apm-fieldpack-epa-solaris
